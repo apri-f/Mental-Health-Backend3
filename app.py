@@ -2,8 +2,15 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
 import requests
-import google.generativeai as genai
 import os
+
+try:
+    import google.generativeai as genai
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    chat_model = genai.GenerativeModel("gemini-1.5-flash")
+except Exception as e:
+    print("Gemini disabled:", e)
+    chat_model = None
 
 app = Flask(__name__)
 CORS(app)
@@ -11,8 +18,10 @@ CORS(app)
 # ======================
 # LOAD MODEL ML
 # ======================
-model = joblib.load("depression_model.pkl")
-encoder = joblib.load("severity_encoder.pkl")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+model = joblib.load(os.path.join(BASE_DIR, "depression_model.pkl"))
+encoder = joblib.load(os.path.join(BASE_DIR, "severity_encoder.pkl"))
 
 
 # ======================
@@ -56,11 +65,13 @@ chat_model = genai.GenerativeModel(
 # ======================
 @app.route("/chat", methods=["POST"])
 def chat():
-
     try:
+        if chat_model is None:
+            return jsonify({
+                "reply": "Chat AI sedang tidak aktif (deployment safe mode)."
+            })
 
         data = request.json
-
         user_message = data["message"]
         severity = data["severity"]
 
@@ -76,23 +87,18 @@ Pesan pengguna:
 Jawab dalam Bahasa Indonesia.
 """
 
-        response = chat_model.generate_content(
-            prompt
-        )
+        response = chat_model.generate_content(prompt)
 
         return jsonify({
             "reply": response.text
         })
 
     except Exception as e:
-
         print("CHAT ERROR:", e)
-
         return jsonify({
-            "reply":
-            "Maaf, terjadi kesalahan saat menghubungi AI."
+            "reply": "Maaf, terjadi kesalahan saat menghubungi AI."
         })
-
+        
 @app.route("/")
 def home():
     return "Mental Health API Running"
