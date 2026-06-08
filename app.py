@@ -20,10 +20,20 @@ CORS(app)
 # ======================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-model = joblib.load(os.path.join(BASE_DIR, "depression_model.pkl"))
-encoder = joblib.load(os.path.join(BASE_DIR, "severity_encoder.pkl"))
+model_path = os.path.join(BASE_DIR, "depression_model.pkl")
+encoder_path = os.path.join(BASE_DIR, "severity_encoder.pkl")
 
+model = joblib.load(model_path)
+encoder = joblib.load(encoder_path)
 
+try:
+    model = joblib.load(model_path)
+    encoder = joblib.load(encoder_path)
+except Exception as e:
+    print("MODEL LOAD ERROR:", e)
+    model = None
+    encoder = None
+    
 # ======================
 # PREDICT PHQ-9
 # ======================
