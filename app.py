@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
 import requests
-import google.generativeai as genai
+# import google.generativeai as genai
 import os
 
 app = Flask(__name__)
@@ -43,18 +43,18 @@ def predict():
         "severity": severity
     })
 
-genai.configure(
+# genai.configure(
     api_key=os.getenv("GEMINI_API_KEY")
 )
 
-chat_model = genai.GenerativeModel(
+# chat_model = genai.GenerativeModel(
     "gemini-2.5-flash"
 )
 
 # ======================
 # AI CHAT ENDPOINT
 # ======================
-@app.route("/chat", methods=["POST"])
+# @app.route("/chat", methods=["POST"])
 def chat():
 
     try:
@@ -92,6 +92,12 @@ Jawab dalam Bahasa Indonesia.
             "reply":
             "Maaf, terjadi kesalahan saat menghubungi AI."
         })
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    return jsonify({
+        "reply": "Chat sementara dinonaktifkan (deploy fix mode)."
+    })
 
 @app.route("/")
 def home():
